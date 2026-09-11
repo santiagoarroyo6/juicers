@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juicers — Battery operations, Sydney</title>
+<meta name="description" content="Juicers keeps shared e-bike and e-scooter fleets charged in Sydney: battery collection, charging and swaps, every day of the week.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Ccircle cx='28' cy='28' r='28' fill='%235FC24A'/%3E%3Cpolygon points='31,12 17,31 26,31 24,44 39,24 29,24' fill='%230D1B33'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&display=swap">
+<style>
+:root{
+  --green:#5FC24A;
+  --green-soft:#EAF6E6;
+  --navy:#0D1B33;
+  --navy-2:#1B2A45;
+  --paper:#F4F6F8;
+  --white:#FFFFFF;
+  --ink:#0D1B33;
+  --ink-2:#56617A;
+  --line:#DDE2EA;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:24px}
+h1,h2,h3{font-family:"Sora","Inter",sans-serif;margin:0;letter-spacing:-.015em;text-wrap:balance}
+p{margin:0}
+
+/* logo lockup, from the Juicers logo sheet */
+.lockup{display:flex;align-items:center;gap:12px;text-decoration:none}
+.lockup svg{width:40px;height:40px;flex:none;display:block}
+.lockup span{font-family:"Sora",sans-serif;font-weight:800;font-size:24px;letter-spacing:-.01em;color:var(--white)}
+
+/* hero */
+.hero{background:var(--navy);color:var(--white);position:relative;overflow:hidden}
+.hero::after{
+  content:"";position:absolute;right:-140px;top:-120px;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(95,194,74,.22),rgba(95,194,74,0) 68%);pointer-events:none;
+}
+.nav{display:flex;align-items:center;justify-content:space-between;padding-block:26px;position:relative;z-index:1}
+.nav .where{font-size:14px;color:#AEB8CB}
+.hero-in{padding-block:72px 96px;position:relative;z-index:1;max-width:760px}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--green);margin-bottom:22px;
+}
+.kicker i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.08;font-weight:700}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero p{margin-top:22px;font-size:clamp(17px,2.2vw,20px);color:#C9D1DF;max-width:58ch}
+
+/* what we do */
+.section{padding-block:80px}
+.section-head{max-width:640px;margin-bottom:40px}
+.section-head h2{font-size:clamp(26px,3.6vw,36px);line-height:1.15;font-weight:700}
+.section-head p{margin-top:12px;color:var(--ink-2)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:28px}
+.card .ic{
+  width:44px;height:44px;border-radius:11px;background:var(--green-soft);
+  display:grid;place-items:center;margin-bottom:18px;
+}
+.card .ic svg{width:22px;height:22px;display:block}
+.card h3{font-size:19px;font-weight:600;margin-bottom:8px}
+.card p{color:var(--ink-2);font-size:15.5px}
+
+/* strip */
+.strip{background:var(--white);border-block:1px solid var(--line)}
+.strip-in{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding-block:44px}
+.stat b{display:block;font-family:"Sora",sans-serif;font-weight:700;font-size:30px;letter-spacing:-.02em;color:var(--navy)}
+.stat span{color:var(--ink-2);font-size:15px}
+
+/* footer */
+footer{background:var(--navy);color:#AEB8CB;padding-block:48px;font-size:14.5px}
+.foot{display:flex;flex-wrap:wrap;gap:24px 48px;justify-content:space-between;align-items:flex-start}
+.foot .lockup span{font-size:20px}
+.foot .lockup svg{width:34px;height:34px}
+.legal{line-height:1.7;max-width:520px}
+.legal strong{color:var(--white);font-weight:600}
+.copy{margin-top:32px;padding-top:20px;border-top:1px solid var(--navy-2);font-size:13px;color:#7F8BA3}
+
+@media (max-width:820px){
+  .cards,.strip-in{grid-template-columns:1fr}
+  .hero-in{padding-block:48px 72px}
+  .section{padding-block:56px}
+  .nav .where{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="lockup" href="#" aria-label="Juicers home">
+        <svg viewBox="0 0 56 56" aria-hidden="true">
+          <circle cx="28" cy="28" r="28" fill="#5FC24A"/>
+          <polygon points="31,12 17,31 26,31 24,44 39,24 29,24" fill="#0D1B33"/>
+        </svg>
+        <span>JUICERS</span>
+      </a>
+      <span class="where">Sydney, New South Wales</span>
+    </nav>
+    <div class="hero-in">
+      <div class="kicker"><i></i>Battery operations</div>
+      <h1>We keep shared e-bikes and e-scooters <em>charged.</em></h1>
+      <p>Juicers collects, charges and swaps batteries for shared micromobility fleets in Sydney, every day of the week, so the vehicles are ready when riders need them.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>What we do</h2>
+        <p>A small, trained field team and a charging site that runs seven days a week.</p>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0D1B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
+          <h3>Battery swaps</h3>
+          <p>Scheduled runs across the city to replace depleted batteries with fully charged ones.</p>
+        </article>
+        <article class="card">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0D1B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/><path d="M11 9l-2.5 3.5H12L9.5 16"/></svg></div>
+          <h3>Charging operations</h3>
+          <p>Batteries are collected, charged and checked at our site before going back out.</p>
+        </article>
+        <article class="card">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0D1B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+          <h3>Trained riders</h3>
+          <p>Every rider on the team is trained in safe handling of batteries and vehicles.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip" aria-label="At a glance">
+    <div class="wrap strip-in">
+      <div class="stat"><b>7 days</b><span>Operating every day of the week</span></div>
+      <div class="stat"><b>Sydney</b><span>Based in New South Wales</span></div>
+      <div class="stat"><b>Micromobility</b><span>Shared e-bikes and e-scooters</span></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <a class="lockup" href="#" aria-label="Juicers">
+        <svg viewBox="0 0 56 56" aria-hidden="true">
+          <circle cx="28" cy="28" r="28" fill="#5FC24A"/>
+          <polygon points="31,12 17,31 26,31 24,44 39,24 29,24" fill="#0D1B33"/>
+        </svg>
+        <span>JUICERS</span>
+      </a>
+      <p class="legal">
+        Juicers is operated by <strong>7 EVERYTHING OR NOTHING PTY LTD</strong><br>
+        ABN 23 691 134 826 · New South Wales, Australia
+      </p>
+    </div>
+    <p class="copy">© 2026 7 Everything or Nothing Pty Ltd</p>
+  </div>
+</footer>
+
+</body>
+</html>
