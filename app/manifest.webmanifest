@@ -1,0 +1,13 @@
+{
+  "name": "Juicers",
+  "short_name": "Juicers",
+  "description": "Battery runs, schedules and forms for the Juicers team.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "icon.png", "sizes": "1080x1080", "type": "image/png", "purpose": "any" }
+  ]
+}
