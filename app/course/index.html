@@ -1,0 +1,738 @@
+<title>Juicers Rider Induction</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ink: #14181f; --ink-soft: #5b6472; --paper: #ffffff; --shell: #eef1f6; --line: #d8dee8;
+    --go: #1a8f4c; --wait: #c2751a; --bad: #d8332a; --hi: #ffd84a;
+    --mod: #14181f; --mod-tint: #e9ecf2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eef1f6; --ink-soft: #99a3b3; --paper: #151920; --shell: #0b0d12; --line: #2a313d;
+      --go: #4cc97f; --wait: #e0a049; --bad: #ff6a5e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #eef1f6; --ink-soft: #99a3b3; --paper: #151920; --shell: #0b0d12; --line: #2a313d;
+    --go: #4cc97f; --wait: #e0a049; --bad: #ff6a5e;
+  }
+  body { background: var(--shell); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; margin: 0; }
+  .wrap { max-width: 440px; margin-inline: auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 14px; }
+
+  .eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; margin: 0; }
+  h1 { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.15; margin: 2px 0 0; text-wrap: balance; }
+  .sub { margin: 2px 0 0; color: var(--ink-soft); font-size: 13px; }
+
+  .modules { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .modules button {
+    font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--paper);
+    border: 1px solid var(--line); border-radius: 9px; padding: 7px 4px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 0;
+  }
+  .modules button .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .modules button[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .modules button.done::after { content: "✓"; color: var(--go); font-size: 11px; }
+  .modules button:focus-visible, .controls button:focus-visible, .after button:focus-visible { outline: 2px solid var(--mod); outline-offset: 2px; }
+
+  /* ================= escenario ================= */
+  .stage {
+    position: relative; aspect-ratio: 9 / 16; max-width: 100%; background: #fff; color: #14181f;
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden; container-type: inline-size;
+  }
+  .scene {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 5cqw 5cqw 27cqw; box-sizing: border-box; opacity: 0; pointer-events: none;
+  }
+  .scene.is-on { opacity: 1; }
+  .scene.is-on .up  { animation: up .5s cubic-bezier(.2,.8,.3,1) both; }
+  .scene.is-on .pop { animation: pop .42s cubic-bezier(.2,1.3,.4,1) both; }
+  .scene.is-on .d1 { animation-delay: .3s; } .scene.is-on .d2 { animation-delay: .8s; } .scene.is-on .d3 { animation-delay: 1.4s; }
+  @keyframes up  { from { opacity: 0; transform: translateY(5cqw); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
+  @keyframes ring { 0%,100% { box-shadow: 0 0 0 .6cqw var(--mod); } 50% { box-shadow: 0 0 0 1.4cqw color-mix(in srgb, var(--mod) 35%, transparent); } }
+
+  .caption {
+    position: absolute; left: 0; right: 0; bottom: 0; background: #101318; color: #fff;
+    padding: 3.6cqw 4.5cqw 4.6cqw; min-height: 22cqw; box-sizing: border-box;
+    font-family: Archivo, system-ui, sans-serif; font-weight: 600; font-size: 4.7cqw; line-height: 1.3;
+    display: flex; align-items: center; text-wrap: balance; margin: 0;
+  }
+  .caption b { font-weight: 800; color: var(--hi); }
+  .bar { position: absolute; left: 0; bottom: 0; height: .8cqw; background: var(--mod); width: 0; z-index: 2; }
+  .bar.run { transition: width linear; }
+
+  .art { position: relative; display: block; width: 100%; }
+  .art img, .hero img { display: block; width: 100%; height: auto; }
+  .hero { width: 84%; }
+
+  /* title */
+  .k-title { display: flex; flex-direction: column; align-items: center; gap: 2cqw; text-align: center; width: 100%; }
+  .k-title img { width: 64%; height: auto; }
+  .k-title h2 { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 10cqw; line-height: 1; margin: 0; letter-spacing: -.02em; }
+  .k-title p { margin: 0; font-size: 3.8cqw; color: #5b6472; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 1.4cqw; border-radius: 99cqw; padding: 1.2cqw 3cqw 1.2cqw 2.2cqw;
+    font-weight: 600; font-size: 3.6cqw; white-space: nowrap; font-family: "IBM Plex Sans", system-ui, sans-serif;
+  }
+  .chip svg { width: 4cqw; height: 4cqw; display: block; flex: none; }
+
+  /* stat */
+  .k-stat { display: flex; flex-direction: column; align-items: center; gap: 1cqw; width: 100%; }
+  .k-stat .big { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 20cqw; line-height: .95; color: var(--mod); letter-spacing: -.03em; position: relative; }
+  .k-stat .big.long { font-size: 13cqw; }
+  .k-stat .big.strike::after { content: ""; position: absolute; left: -6%; right: -6%; top: 50%; height: 2cqw; background: #d8332a; transform: rotate(-12deg); border-radius: 1cqw; }
+  .k-stat .small { font-size: 4.4cqw; color: #5b6472; font-weight: 500; }
+  .k-stat img { width: 52%; height: auto; margin-top: 2cqw; }
+
+  /* list */
+  .k-list { display: flex; flex-direction: column; align-items: center; gap: 3cqw; width: 100%; }
+  .k-list img { width: 48%; height: auto; }
+  .k-list ul { list-style: none; margin: 0; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 1.8cqw; }
+  .k-list li { display: flex; justify-content: space-between; gap: 3cqw; border: .4cqw solid #e3e7ee; border-radius: 2.4cqw; padding: 2.2cqw 3cqw; font-size: 3.7cqw; }
+  .k-list li b { font-family: Archivo, system-ui, sans-serif; }
+  .k-list li span { color: #5b6472; text-align: right; }
+
+  /* fila de bicis compuesta en codigo: separacion y orientacion garantizadas,
+     que es justo lo que el generador de imagenes no consigue */
+  .k-row { width: 100%; }
+  .bay { position: relative; }
+  .bay .hoops { position: absolute; left: 0; right: 0; bottom: 8%; height: 62%; width: 100%; overflow: visible; }
+  .bay .bikes { position: relative; display: flex; align-items: flex-end; justify-content: center; }
+  .bay .bikes img { width: 34%; height: auto; margin-inline: -1%; }
+  .bay .floor { height: 3cqw; background: #d6dbe2; border-top: .4cqw solid #b9c0ca;
+    background-image: linear-gradient(90deg, #b9c0ca .4cqw, transparent .4cqw);
+    background-size: 12% 100%; }
+  .k-row figcaption { text-align: center; font-size: 3.5cqw; font-weight: 600; margin-top: 1.4cqw; }
+
+  .k-versus { display: flex; gap: 3cqw; width: 100%; align-items: flex-end; }
+  .k-versus > * { flex: 1 1 0; min-width: 0; margin: 0; }
+  .k-versus img { width: 100%; height: auto; }
+  .k-versus figcaption { text-align: center; font-size: 3.5cqw; font-weight: 600; margin-top: 1cqw; }
+  .k-versus .no { color: #d8332a; }
+  .k-versus .yes { color: #1a8f4c; }
+  .k-versus .bay .bikes img { width: 46%; }
+
+  /* pair */
+  .k-pair { display: flex; gap: 3cqw; width: 100%; align-items: flex-end; }
+  .k-pair figure { margin: 0; flex: 1 1 0; min-width: 0; text-align: center; }
+  .k-pair img { width: 100%; height: auto; }
+  .k-pair figcaption { font-size: 3.5cqw; font-weight: 600; margin-top: 1cqw; }
+
+  /* rack readouts */
+  .readout {
+    position: absolute; transform: translate(-50%, -50%); background: #1b1b1b; color: #ff3b2f;
+    font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-variant-numeric: tabular-nums;
+    border-radius: .6cqw; display: grid; place-items: center; line-height: 1; font-size: 5cqw;
+    box-shadow: 0 0 2.5cqw rgba(255,59,47,.45); top: 20.4%; height: 9.5%;
+  }
+  .readout.r0 { left: 24.6%; width: 18%; } .readout.r1 { left: 56.2%; width: 18.5%; }
+  .verdict { position: absolute; transform: translate(-50%, 0); top: 32%; border-radius: 99cqw; padding: 1cqw 2.6cqw; font-size: 3.2cqw; font-weight: 600; color: #fff; white-space: nowrap; }
+  .verdict.v0 { left: 24.6%; background: #1a8f4c; } .verdict.v1 { left: 56.2%; background: #c2751a; }
+
+  /* ================= móvil ================= */
+  .phone { width: 60cqw; aspect-ratio: 9 / 18.4; background: #111; border-radius: 7cqw; padding: 1.8cqw; box-sizing: border-box; flex: none; }
+  .screen { position: relative; height: 100%; background: #fff; border-radius: 5.4cqw; overflow: hidden; font-size: 3.2cqw; color: #14181f; display: flex; flex-direction: column; }
+  .appbar { padding: 4.6cqw 3.4cqw 2.4cqw; font-weight: 600; font-size: 3.6cqw; border-bottom: .3cqw solid #eef0f4; display: flex; align-items: center; gap: 2cqw; }
+  .appbar small { color: #5b6472; font-weight: 500; font-size: 2.8cqw; margin-left: auto; }
+  .pad { padding: 3cqw; display: flex; flex-direction: column; gap: 2.2cqw; }
+
+  .s-chips { display: flex; flex-wrap: wrap; gap: 1.8cqw; }
+  .s-chips .chip { font-size: 3.3cqw; transition: opacity .3s; }
+  .s-chips.has-hl .chip:not(.hl) { opacity: .28; }
+  .s-chips .chip.hl { animation: ring 1.4s ease-in-out infinite; }
+
+  .scan { flex: 1; background: #1c2027; display: grid; place-items: center; position: relative; }
+  .scan .box { width: 60%; aspect-ratio: 1; position: relative; }
+  .scan .box i { position: absolute; width: 22%; height: 22%; border: 1cqw solid #fff; }
+  .scan .box i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 2cqw 0 0 0; }
+  .scan .box i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 2cqw 0 0; }
+  .scan .box i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 2cqw; }
+  .scan .box i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 2cqw 0; }
+  .scan .line { position: absolute; left: 22%; right: 22%; height: .6cqw; background: #22c55e; top: 30%; animation: sweep 1.8s ease-in-out infinite alternate; }
+  @keyframes sweep { to { top: 68%; } }
+  .scan .hint { position: absolute; bottom: 6cqw; color: #fff; font-size: 3cqw; }
+  .navbar { display: flex; justify-content: space-around; align-items: center; padding: 2.4cqw 2cqw 3.4cqw; border-top: .3cqw solid #eef0f4; }
+  .navbar i { width: 4.4cqw; height: 4.4cqw; border-radius: 1cqw; background: #c9ced6; }
+  .navbar b { width: 13cqw; height: 7cqw; border-radius: 3cqw; background: #22c55e; }
+
+  .field { display: flex; flex-direction: column; gap: 1cqw; }
+  .field label { font-size: 2.8cqw; color: #5b6472; font-weight: 500; }
+  .field .in { border: .4cqw solid #d8dee8; border-radius: 1.8cqw; height: 7.4cqw; display: flex; align-items: center; padding-inline: 2.4cqw; font-weight: 600; font-size: 3.6cqw; font-variant-numeric: tabular-nums; }
+  .field.hl .in { border-color: var(--mod); animation: ring 1.4s ease-in-out infinite; }
+  .btn { background: var(--mod); color: #fff; border-radius: 2cqw; text-align: center; padding: 2.4cqw; font-weight: 600; font-size: 3.4cqw; }
+  .btn.ghost { background: #eef0f4; color: #14181f; }
+
+  .wa { background: #e9e2d8; flex: 1; padding: 3cqw; display: flex; flex-direction: column; gap: 2.4cqw; }
+  .wa-bar { background: #0e6b5c; color: #fff; }
+  .wa-bar small { color: #cfe7e2; }
+  .bubble { background: #fff; border-radius: 0 2.4cqw 2.4cqw 2.4cqw; padding: 2cqw 2.6cqw 1.4cqw; max-width: 86%; font-size: 3.1cqw; line-height: 1.35; }
+  .bubble time { display: block; text-align: right; font-size: 2.4cqw; color: #8a929e; margin-top: .6cqw; }
+
+  .shot { flex: 1; position: relative; background: #222; display: flex; flex-direction: column; justify-content: center; }
+  .shot img { width: 100%; height: auto; display: block; }
+  .stamp { position: absolute; top: 4cqw; left: 3cqw; background: rgba(0,0,0,.72); color: #fff; border-radius: 1.6cqw; padding: 1.2cqw 2cqw; font-size: 3cqw; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stamp.hl { background: var(--hi); color: #14181f; animation: ring 1.4s ease-in-out infinite; }
+  .shot .btn { position: absolute; left: 3cqw; right: 3cqw; bottom: 4cqw; }
+
+  .call { flex: 1; background: linear-gradient(#1f2a38, #0f141b); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqw; text-align: center; padding: 4cqw; }
+  .call .who { font-family: Archivo, system-ui, sans-serif; font-weight: 700; font-size: 4.6cqw; }
+  .call .ok { margin-top: 4cqw; background: #1a8f4c; border-radius: 2cqw; padding: 2cqw 3cqw; font-size: 3cqw; font-weight: 600; }
+  .call .x { width: 12cqw; height: 12cqw; border-radius: 50%; background: #d8332a; display: grid; place-items: center; font-size: 6cqw; line-height: 1; text-decoration: line-through; }
+
+  .map { flex: 1; position: relative; background:
+      linear-gradient(115deg, transparent 47%, #fff 47% 50%, transparent 50%),
+      linear-gradient(25deg, transparent 58%, #fff 58% 60.5%, transparent 60.5%),
+      linear-gradient(170deg, transparent 30%, #fff 30% 32%, transparent 32%),
+      radial-gradient(circle at 12% 8%, #bfdcf2 0 18%, transparent 18.5%),
+      #e8edf1; }
+  .tabs { position: absolute; top: 4.6cqw; left: 2.6cqw; right: 2.6cqw; display: flex; gap: 1.6cqw; z-index: 2; }
+  .tabs span { background: #fff; border-radius: 99cqw; padding: 1.2cqw 2.6cqw; font-weight: 600; font-size: 2.9cqw; box-shadow: 0 .3cqw 1cqw rgba(0,0,0,.12); }
+  .tabs span.on { background: #e7f8ee; color: #15803d; outline: .5cqw solid #22c55e; }
+  .pin { position: absolute; transform: translate(-50%, -100%); background: #111; color: #fff; border-radius: 1.6cqw; padding: .9cqw 1.8cqw; display: flex; align-items: center; gap: 1cqw; font-weight: 700; font-size: 3.2cqw; }
+  .pin::after { content: ""; position: absolute; left: 50%; bottom: -1.2cqw; transform: translateX(-50%); border: 1.2cqw solid transparent; border-top-color: #111; border-bottom: 0; }
+  .pin svg { width: 3.8cqw; height: 3.8cqw; }
+  .pin .star { position: absolute; top: -1.8cqw; right: -1.8cqw; width: 3.6cqw; height: 3.6cqw; border-radius: 50%; background: #f5b400; color: #fff; font-size: 2.4cqw; display: grid; place-items: center; }
+  .pin.hl { animation: ring 1.4s ease-in-out infinite; z-index: 3; }
+  .pin.task { background: #fff; color: #14181f; padding: 1cqw; }
+  .pin.task::after { border-top-color: #fff; }
+
+  .res { display: flex; flex-direction: column; gap: 2cqw; }
+  .res h4 { margin: 0; font-family: Archivo, system-ui, sans-serif; font-size: 4.2cqw; }
+  .kv { display: flex; justify-content: space-between; border-bottom: .3cqw solid #eef0f4; padding-block: 1.6cqw; font-size: 3.2cqw; }
+  .kv b { font-variant-numeric: tabular-nums; }
+  .kv.hl { background: #fff7d1; margin-inline: -1.4cqw; padding-inline: 1.4cqw; border-radius: 1.4cqw; }
+  .timer { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 11cqw; text-align: center; font-variant-numeric: tabular-nums; color: var(--mod); line-height: 1; }
+  .timer-l { text-align: center; font-size: 2.8cqw; color: #5b6472; }
+
+  .strikes { display: flex; justify-content: center; gap: 3cqw; padding-block: 3cqw; }
+  .strikes i { width: 12cqw; height: 12cqw; border-radius: 50%; border: .6cqw dashed #c9ced6; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 6cqw; color: #fff; }
+  .strikes i.on { background: #d8332a; border: 0; }
+  .lock { background: #fdecea; color: #a4231b; border-radius: 2cqw; padding: 2.4cqw; font-weight: 600; font-size: 3.1cqw; text-align: center; }
+
+  /* tarjeta de tarea, acciones, codigos, ring, horarios, stock */
+  .tcard { display: flex; gap: 2.4cqw; align-items: flex-start; }
+  .tcard .sq { width: 8cqw; height: 8cqw; border-radius: 2cqw; display: grid; place-items: center; flex: none; }
+  .tcard .sq svg { width: 5cqw; height: 5cqw; }
+  .tcard h4 { margin: 0; font-family: Archivo, system-ui, sans-serif; font-size: 4cqw; line-height: 1.15; }
+  .tcard p { margin: .6cqw 0 0; color: #5b6472; font-size: 2.9cqw; }
+  .pills { display: flex; gap: 1.6cqw; }
+  .pills span { background: #eef0f4; border-radius: 99cqw; padding: 1.4cqw 2.4cqw; font-size: 2.9cqw; font-weight: 600; white-space: nowrap; }
+  .pills span.on { background: var(--mod-tint); color: var(--mod); animation: ring 1.4s ease-in-out infinite; }
+  .detbox { background: #f4f6f9; border-radius: 2cqw; padding: 2.4cqw; }
+  .detbox b { display: block; font-size: 3.3cqw; }
+  .detbox span { color: #5b6472; font-size: 2.9cqw; }
+  .go { background: #22c55e; color: #fff; text-align: center; border-radius: 2.4cqw; padding: 2.6cqw; font-weight: 700; font-size: 3.6cqw; }
+
+  .act { display: flex; align-items: center; gap: 2.6cqw; padding-block: 2.4cqw; border-bottom: .3cqw solid #eef0f4; font-size: 3.4cqw; font-weight: 600; }
+  .act:last-child { border-bottom: 0; }
+  .act i { width: 5.4cqw; height: 5.4cqw; border-radius: 1.4cqw; background: #eef0f4; flex: none; }
+  .act span { display: block; font-weight: 500; color: #5b6472; font-size: 2.7cqw; }
+  .act.red { color: #d8332a; } .act.red i { background: #fdecea; }
+  .act.on { background: var(--mod-tint); border-radius: 2cqw; padding-inline: 2cqw; animation: ring 1.4s ease-in-out infinite; }
+
+  .match { display: flex; flex-direction: column; gap: 2.4cqw; align-items: center; }
+  .match .lab { font-size: 2.8cqw; color: #5b6472; text-align: center; }
+  .match .code { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 6.4cqw; letter-spacing: .06em; border: .5cqw solid #d8dee8; border-radius: 2cqw; padding: 2cqw 3cqw; text-align: center; }
+  .match .code em { font-style: normal; color: #5b6472; }
+  .match .code u { text-decoration: none; background: var(--hi); border-radius: 1cqw; padding: 0 1cqw; }
+  .match .eq { font-size: 6cqw; color: #1a8f4c; font-weight: 800; }
+
+  .ringbox { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3cqw; padding: 5cqw; text-align: center; }
+  .ringbox .wave { width: 22cqw; height: 22cqw; border-radius: 50%; background: var(--mod-tint); display: grid; place-items: center; animation: ring 1.4s ease-in-out infinite; }
+  .ringbox .wave b { font-size: 9cqw; }
+  .ringbox p { margin: 0; font-size: 3.2cqw; color: #5b6472; }
+  .quiet { background: #fff7d1; border-radius: 2cqw; padding: 2.2cqw; font-size: 3cqw; font-weight: 600; }
+
+  .slot { display: flex; align-items: center; justify-content: space-between; border: .4cqw solid #d8dee8; border-radius: 2cqw; padding: 2.4cqw 3cqw; font-weight: 700; font-size: 4cqw; font-variant-numeric: tabular-nums; }
+  .slot small { font-weight: 500; font-size: 2.8cqw; color: #5b6472; }
+  .slot.full { opacity: .45; }
+  .slot.on { border-color: var(--mod); background: var(--mod-tint); color: var(--mod); animation: ring 1.4s ease-in-out infinite; }
+
+  .stockpin { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); background: #f5b400; color: #fff; border-radius: 99cqw; padding: 1.4cqw 3cqw; display: flex; gap: 3cqw; font-weight: 800; font-size: 4cqw; align-items: center; }
+  .stockpin svg { width: 4.4cqw; height: 4.4cqw; }
+  .stockpin::after { content: ""; position: absolute; left: 50%; bottom: -1.4cqw; transform: translateX(-50%); border: 1.4cqw solid transparent; border-top-color: #f5b400; border-bottom: 0; }
+
+  .opt { display: flex; align-items: center; gap: 2.4cqw; border: .4cqw solid #d8dee8; border-radius: 2cqw; padding: 2.4cqw; font-weight: 600; font-size: 3.3cqw; }
+  .opt .n { width: 6cqw; height: 6cqw; border-radius: 50%; background: #eef0f4; display: grid; place-items: center; font-size: 3cqw; flex: none; }
+  .opt.on { border-color: var(--mod); background: var(--mod-tint); animation: ring 1.4s ease-in-out infinite; }
+  .opt.on .n { background: var(--mod); color: #fff; }
+
+  /* ================= controles ================= */
+  .controls { display: flex; align-items: center; gap: 8px; }
+  .controls button, .after button {
+    font: inherit; font-weight: 600; color: var(--ink); background: var(--paper); border: 1px solid var(--line);
+    border-radius: 9px; padding: 9px 12px; cursor: pointer;
+  }
+  .controls button:hover, .after button:hover { border-color: var(--ink); }
+  .rail { display: flex; gap: 3px; flex: 1; min-width: 0; }
+  .rail button { flex: 1; min-width: 0; padding: 0; height: 5px; border: 0; border-radius: 3px; background: var(--line); }
+  .rail button[aria-current="true"] { background: var(--mod); }
+  .rail button.seen { background: color-mix(in srgb, var(--mod) 40%, var(--line)); }
+  .after { display: flex; justify-content: flex-end; }
+  .after button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* ================= examen ================= */
+  .exam { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .exam h2 { font-family: Archivo, system-ui, sans-serif; font-size: 22px; margin: 0; }
+  .exam .meta { color: var(--ink-soft); font-size: 13px; margin: 4px 0 0; }
+  .exam fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .exam legend { font-weight: 600; margin-bottom: 6px; padding: 0; line-height: 1.4; }
+  .exam legend span { color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .exam label { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 14px; }
+  .exam label:has(input:checked) { border-color: var(--ink); }
+  .exam input { margin-top: 3px; }
+  .exam fieldset.wrong label:has(input:checked) { border-color: var(--bad); }
+  .result { border-radius: 10px; padding: 12px 14px; font-weight: 600; }
+  .result.pass { background: color-mix(in srgb, var(--go) 16%, transparent); color: var(--go); }
+  .result.fail { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+  .exam .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .exam button { font: inherit; font-weight: 600; border-radius: 9px; padding: 10px 14px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); }
+  .exam button.ghost { background: var(--paper); color: var(--ink); border-color: var(--line); }
+  .exam button:disabled { opacity: .45; cursor: not-allowed; }
+
+  .note { color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene.is-on .up, .scene.is-on .pop { animation: none; opacity: 1; transform: none; }
+    .field.hl .in, .opt.on, .pin.hl, .s-chips .chip.hl, .stamp.hl { animation: none; }
+    .scan .line { animation: none; }
+    .bar.run { transition: none; }
+  }
+</style>
+
+<div class="wrap" id="app">
+  <header>
+    <p class="eyebrow">Juicers · Rider induction</p>
+    <h1 id="modTitle">Welcome</h1>
+    <p class="sub" id="modSub"></p>
+  </header>
+
+  <nav class="modules" id="modules" aria-label="Modules"></nav>
+
+  <div id="player">
+    <div class="stage" id="stage" aria-live="polite"></div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button type="button" id="prev" aria-label="Previous scene">‹</button>
+    <button type="button" id="toggle">Pause</button>
+    <button type="button" id="next" aria-label="Next scene">›</button>
+    <div class="rail" id="rail" aria-label="Scenes"></div>
+  </div>
+
+  <div class="after"><button type="button" id="advance" class="primary">Next module ›</button></div>
+
+  <section class="exam" id="exam" hidden>
+    <div>
+      <h2>Final test</h2>
+      <p class="meta" id="examMeta"></p>
+    </div>
+    <form id="examForm"></form>
+    <div id="examResult"></div>
+    <div class="row">
+      <button type="button" id="examSubmit">Submit answers</button>
+      <button type="button" class="ghost" id="examBack">Back to the course</button>
+    </div>
+    <p class="note">Preview: in the Juicers app the attempts are saved to the rider's profile, two failed attempts lock the course until an admin unlocks it, and a pass issues the Juicers certificate as a PDF.</p>
+  </section>
+</div>
+
+<script id="course-data" type="application/json">{"title":"Juicers Rider Induction","tasks":{"swap":{"label":"Swap","color":"#2F7EF7","tint":"#E6F0FE"},"retrieve":{"label":"Retrieve","color":"#F26B5E","tint":"#FDEDEB"},"move":{"label":"Move","color":"#1FAE54","tint":"#E7F8EE"},"deploy":{"label":"Deploy","color":"#E8990C","tint":"#FEF3E0"},"tidy":{"label":"Tidy","color":"#E5187F","tint":"#FDE8F2"},"service":{"label":"Service","color":"#7B6CF6","tint":"#EFEDFE"}},"modules":[{"id":"welcome","name":"Welcome","host":"Roo","color":"#14181F","scenes":[{"kind":"title","char":"roo-idle-wave","title":"Welcome to Juicers","sub":"Rider induction","caption":"Let's get you working."},{"kind":"phone","screen":{"type":"chips","tasks":["retrieve","move","swap","deploy","tidy","service"]},"caption":"Six tasks.\nThat's the whole job."},{"kind":"hero","img":"roo-walk-side","caption":"You pick your tasks.\nYou pick your hours."},{"kind":"stat","big":"1","small":"exception","char":"roo-stop-hands","caption":"One exception: batteries.\nThey have a **booked time**."},{"kind":"pair","items":[["bike","Older model"],["bike-new","Newer model"]],"caption":"Two models on the street.\nThe battery sits in a different place on each."},{"kind":"list","char":"roo-point-right","items":[["Safety boots","always"],["Hi-vis vest","at night — we give you one"],["Helmet","if you ride a bike"]],"caption":"Your safety gear."},{"kind":"hero","img":"roo-thumbs-up","caption":"Finish the course, pass the test,\nget your certificate and your login."}]},{"id":"supply","name":"Using Supply","host":"Roo","color":"#14181F","scenes":[{"kind":"title","char":"roo-point-right","title":"Using Supply","sub":"The app you work from","caption":"Everything starts in Supply."},{"kind":"phone","screen":{"type":"map","tab":"Tasks","pins":"tasks"},"caption":"Tasks and dropspots\nare on the map."},{"kind":"phone","screen":{"type":"task"},"caption":"Tap a task and it tells you\nthe model and the battery left."},{"kind":"phone","screen":{"type":"reserve","what":"Task","task":"swap","timer":"60:00"},"caption":"Reserve it and it's yours\nfor **60 minutes**."},{"kind":"hero","img":"roo-stop-hands","caption":"No reservation?\nAnyone can take it before you."},{"kind":"phone","screen":{"type":"map","tab":"Dropspots","pins":"spots","hl":4},"caption":"Each dropspot shows\nhow many spaces are free."},{"kind":"phone","screen":{"type":"reserve","what":"Dropspot","free":4,"bikes":1,"timer":"60:00"},"caption":"You can reserve a dropspot\neven if it shows more spaces than you need."},{"kind":"stat","big":"1 bike","small":"= 1 bike you leave","char":"roo-point-right","caption":"But you only leave\nthe bikes you're actually carrying."},{"kind":"phone","screen":{"type":"strikes","n":1},"caption":"Reserved it and didn't do it?\nThat's a **missed reservation**."},{"kind":"phone","screen":{"type":"strikes","n":3},"caption":"Three in one day and you can't reserve\nanything else until tomorrow."},{"kind":"phone","screen":{"type":"ring"},"caption":"**Ring** makes it flash and beep.\nSome hours the bikes stay silent."},{"kind":"phone","screen":{"type":"match"},"caption":"So check the code instead:\nthe **last three letters** must match."},{"kind":"phone","screen":{"type":"actions"},"caption":"**Vehicle actions** has the rest.\n**Find** tells you how close you are."},{"kind":"stat","big":"0 / 5","small":"reports a day","char":"roo-point-right","caption":"A **Report vehicle issue** creates a task —\nsometimes one you'll be asked to fix."},{"kind":"phone","screen":{"type":"actions","hl":3},"caption":"Can't find it, or it's locked inside a building?\n**Report Missing** — your reservation survives."},{"kind":"phone","screen":{"type":"photo","img":"spot-row","label":"Task","time":"17:42","hl":true},"caption":"Every task ends with a photo.\n**No photo, no pay.**"},{"kind":"hero","img":"roo-thumbs-up","caption":"Reserve, do it, photograph it."}]},{"id":"swap","name":"Swap","task":"swap","host":"Roo","scenes":[{"kind":"title","char":"roo-idle-wave","title":"Swap","sub":"Charged batteries in, empty ones out","caption":"The job that keeps the city riding."},{"kind":"phone","screen":{"type":"times","pick":1,"full":[3]},"caption":"Runs start at **12:00** and repeat\nevery 4.5 hours. You book one slot."},{"kind":"stat","big":"4.5 h","small":"to charge a battery","caption":"Batteries take 4.5 hours to charge."},{"kind":"hero","img":"roo-walk-side","caption":"If you're late,\nthe next rider is late too."},{"kind":"phone","screen":{"type":"whatsapp","msgs":[["Battery run today at 17:00. Reply YES to confirm.","15:43"],["30 minutes to your battery run.","16:30"]]},"caption":"We remind you on WhatsApp,\n**77** and 30 minutes before."},{"kind":"hero","img":"roo-closeup","caption":"Can't make it?\nTell us on WhatsApp — early."},{"kind":"phone","screen":{"type":"photo","img":"warehouse-interior","label":"Arrival","time":"16:58"},"caption":"The moment you arrive:\nphoto of how you found it."},{"kind":"phone","screen":{"type":"photo","img":"warehouse-interior","label":"Arrival","time":"16:58","hl":true},"caption":"That photo's time **is** your arrival time.\nIt can't be changed."},{"kind":"phone","screen":{"type":"call"},"caption":"Take it, and the reminder call stops."},{"kind":"phone","screen":{"type":"photo","img":"key","label":"Key","time":"17:10","hl":true},"caption":"Photograph the key where you leave it,\nso the next rider can find it."},{"kind":"object","img":"charger-rack","caption":"Plug in the empties you brought back."},{"kind":"object","img":"charger-slot","readouts":[97,71],"count":true,"caption":"Every slot shows\nits charge percentage."},{"kind":"object","img":"charger-slot","readouts":[97,71],"verdicts":true,"caption":"**97 or more**: take it.\nUnder 97: leave it charging."},{"kind":"pair","items":[["van","Van"],["car","Car"]],"caption":"Carry them by van, car or bike —\nwhatever fits."},{"kind":"phone","screen":{"type":"form"},"caption":"Before you leave: fill your log.\nFour numbers."},{"kind":"phone","screen":{"type":"form","values":[6,null,null,null],"hl":[0]},"caption":"**Collected**:\nthe empties you brought back."},{"kind":"phone","screen":{"type":"form","values":[6,6,null,null],"hl":[1]},"caption":"**Left charging**:\nonly the ones you just plugged in."},{"kind":"stat","big":"96","strike":true,"small":"the rack total","char":"roo-stop-hands","caption":"Not the total on the rack."},{"kind":"phone","screen":{"type":"form","values":[6,6,6,null],"hl":[2]},"caption":"**Taken with you**:\nthe charged ones you're leaving with."},{"kind":"phone","screen":{"type":"form","values":[6,6,6,null],"hl":[0,1,2]},"caption":"On a clean run,\nthese three match."},{"kind":"phone","screen":{"type":"form","values":[6,6,6,0],"hl":[3]},"caption":"**Damaged batteries left**:\nthe broken ones you found."},{"kind":"phone","screen":{"type":"photo","img":"warehouse-interior","label":"Departure","time":"17:09","send":true},"caption":"Last: photo of how you left it.\nThen tap **Send log**."},{"kind":"object","img":"qr-sticker","caption":"Out on the street:\nscan the console QR to unlock it."},{"kind":"pair","items":[["battery-in-bike","Older: in the frame"],["battery-new","Newer: behind the seat"]],"caption":"Two models, two places\nto find the battery."},{"kind":"pair","items":[["battery","4 dots · charged"],["battery-low","1–3 dots · empty"]],"caption":"Move a battery and its green dots light up.\nAll **4**: charged."},{"kind":"object","img":"battery","caption":"Empty out. Charged in."},{"kind":"hero","img":"roo-stop-hands","caption":"Damaged battery? Report it in\nthe Juicers app. Leave it where it is."},{"kind":"hero","img":"roo-thumbs-up","caption":"Your numbers tell us\nwhat's ready for the next rider."}]},{"id":"retrieve","name":"Retrieve","task":"retrieve","host":"Wally","scenes":[{"kind":"title","char":"wally-idle-wave","title":"Retrieve","sub":"Broken bikes go back to the warehouse","caption":"Broken bikes go home."},{"kind":"object","img":"bike-broken","caption":"A bike that can't be ridden\ndoesn't belong on the street."},{"kind":"phone","screen":{"type":"chips","tasks":["retrieve","move","swap","deploy","tidy","service"],"hl":"retrieve"},"caption":"Look for **Retrieve** in Supply."},{"kind":"phone","screen":{"type":"reserve","what":"Task","task":"retrieve","timer":"60:00"},"caption":"Reserve it first."},{"kind":"object","img":"van","caption":"This one needs a van."},{"kind":"object","img":"qr-sticker","caption":"Scan the console QR to take it."},{"kind":"hero","img":"wally-crouch","caption":"Load it carefully.\nIt's broken — don't make it worse."},{"kind":"object","img":"warehouse-door","caption":"Drop it at a registered warehouse."},{"kind":"stat","big":"No booking","small":"for bike warehouses","char":"wally-point-right","caption":"No fixed time for bikes —\nbut check there's room first."},{"kind":"phone","screen":{"type":"photo","img":"warehouse-door","label":"Task","time":"11:20","hl":true},"caption":"Photo before you close the task.\n**No photo, no pay.**"},{"kind":"hero","img":"wally-thumbs-up","caption":"Done. On to the next one."}]},{"id":"move","name":"Move","task":"move","host":"Pip","scenes":[{"kind":"title","char":"pip-idle-wave","title":"Move","sub":"Right bike, wrong place","caption":"Right bike, wrong place."},{"kind":"phone","screen":{"type":"chips","tasks":["retrieve","move","swap","deploy","tidy","service"],"hl":"move"},"caption":"**Move** is the green one."},{"kind":"object","img":"spot-bad","caption":"This is what you're sent to fix."},{"kind":"phone","screen":{"type":"reserve","what":"Task","task":"move","timer":"60:00"},"caption":"Reserve the task."},{"kind":"object","img":"van","caption":"Van required."},{"kind":"object","img":"qr-sticker","caption":"Scan the console QR."},{"kind":"phone","screen":{"type":"map","tab":"Dropspots","pins":"spots","hl":2},"caption":"Pick a dropspot on the map."},{"kind":"versus","bad":"spot-bad","img":"bike","n":2,"labels":["Don't","Do"],"caption":"Upright, inside the hoops,\nall facing the same way."},{"kind":"row","img":"bike","n":3,"caption":"This is what a finished\ndropspot looks like."},{"kind":"hero","img":"pip-stop-hands","caption":"Spot full? Go to the next one.\nNever squeeze one in."},{"kind":"phone","screen":{"type":"photo","img":"spot-row","label":"Task","time":"14:05","hl":true},"caption":"Photo of how you left it.\n**No photo, no pay.**"},{"kind":"hero","img":"pip-thumbs-up","caption":"Right bike, right place. Done."}]},{"id":"deploy","name":"Deploy","task":"deploy","host":"Nev","scenes":[{"kind":"title","char":"nev-idle-wave","title":"Deploy","sub":"From the warehouse to the street","caption":"Bikes out on the street."},{"kind":"phone","screen":{"type":"chips","tasks":["retrieve","move","swap","deploy","tidy","service"],"hl":"deploy"},"caption":"**Deploy** is the amber one."},{"kind":"phone","screen":{"type":"stock","scooters":0,"bikes":16},"caption":"The amber pin shows what\nthe warehouse has waiting."},{"kind":"object","img":"warehouse-door","caption":"Take bikes from a registered warehouse."},{"kind":"stat","big":"No booking","small":"for bike warehouses","char":"nev-point-right","caption":"No fixed time for bikes —\nbut check the warehouse has room."},{"kind":"object","img":"van","caption":"Van required."},{"kind":"object","img":"qr-sticker","caption":"Scan each bike as you load it."},{"kind":"phone","screen":{"type":"map","tab":"Dropspots","pins":"spots","hl":5},"caption":"Reserve your dropspots first."},{"kind":"hero","img":"nev-walk-side","caption":"Spread them across\nthe marked spots."},{"kind":"row","img":"bike","n":3,"caption":"Upright, inside the hoops,\nall facing the same way."},{"kind":"phone","screen":{"type":"photo","img":"spot-row","label":"Task","time":"08:15","hl":true},"caption":"Photo before you close it.\n**No photo, no pay.**"},{"kind":"hero","img":"nev-thumbs-up","caption":"Now they're earning."}]},{"id":"tidy","name":"Tidy","task":"tidy","host":"Kiki","scenes":[{"kind":"title","char":"kiki-idle-wave","title":"Tidy","sub":"Same bikes, better street","caption":"Same bikes. Better street."},{"kind":"phone","screen":{"type":"chips","tasks":["retrieve","move","swap","deploy","tidy","service"],"hl":"tidy"},"caption":"**Tidy** is the pink one."},{"kind":"object","img":"spot-bad","caption":"A fallen bike blocks the footpath."},{"kind":"hero","img":"kiki-stop-hands","caption":"That's a complaint\nwaiting to happen."},{"kind":"hero","img":"kiki-walk-side","caption":"No van needed. Just you."},{"kind":"hero","img":"kiki-arrange","caption":"Stand it up and push it in\nby the handlebar."},{"kind":"row","img":"bike","n":4,"caption":"Leave the whole spot like this:\nupright, straight, all the same way."},{"kind":"phone","screen":{"type":"map","tab":"Dropspots","pins":"spots","hl":1},"caption":"Don't go over the spot's limit."},{"kind":"phone","screen":{"type":"photo","img":"spot-row","label":"Task","time":"19:30","hl":true},"caption":"Photo of the tidy spot.\n**No photo, no pay.**"},{"kind":"hero","img":"kiki-thumbs-up","caption":"Clear path. Done."}]},{"id":"service","name":"Service","task":"service","host":"Tassie","scenes":[{"kind":"title","char":"tassie-idle-wave","title":"Service","sub":"Tighten the brakes","caption":"Good brakes, safe riders."},{"kind":"phone","screen":{"type":"chips","tasks":["retrieve","move","swap","deploy","tidy","service"],"hl":"service"},"caption":"**Service** is the purple one."},{"kind":"object","img":"screwdriver","caption":"Your tool: the screwdriver."},{"kind":"object","img":"brake-hub","caption":"The brake screw is on the front hub,\nwhere the cable goes in."},{"kind":"hero","img":"tassie-crouch","caption":"Turn it to tighten the brake."},{"kind":"phone","screen":{"type":"service","pick":0},"caption":"Brakes tightened?\n**Submit service report**."},{"kind":"phone","screen":{"type":"service","pick":1},"caption":"Brakes already fine?\n**No service needed**."},{"kind":"object","img":"brake-broken","caption":"But if the part is snapped\nthere is nothing to tighten."},{"kind":"phone","screen":{"type":"service","pick":2},"caption":"**Mark for retrieval**.\nThat bike leaves the street."},{"kind":"phone","screen":{"type":"photo","img":"brake-hub","label":"Task","time":"10:47","hl":true},"caption":"Photo before you close it.\n**No photo, no pay.**"},{"kind":"hero","img":"tassie-thumbs-up","caption":"Safe brakes. Done."}]}],"service_options":["Submit service report","No service needed","Mark for retrieval"],"vehicle_actions":[["Find","how close you are"],["Last photo","how it was left"],["Report vehicle issue","Daily report limit 0/5"],["Report Missing",""]],"form_fields":["Batteries collected","Batteries left charging","Batteries taken with you","Damaged batteries left"],"slots":["12:00","16:30","21:00","01:30","06:00","10:30"],"exam":{"pass":10,"attempts":2,"questions":[{"q":"A battery slot in the rack shows 84. What do you do?","a":["Take it — it's close enough","Leave it charging","Report it as damaged","Take it and swap it anyway"]},{"q":"When do you take the photo of how you found the warehouse?","a":["Before you leave","As soon as you arrive","Any time during the run","Only if something looks wrong"]},{"q":"In your log, \"Batteries left charging\" means…","a":["The total on the rack","Only the ones you just plugged in","The ones you took with you","The damaged ones"]},{"q":"You move a battery and 3 of its 4 green dots light up. It is…","a":["Charged","Not charged yet","Damaged","Ready if you hurry"]},{"q":"The bike won't ring. How do you know it's the right one?","a":["Guess from the photo","The last three letters of the code match","Its colour","You can't — skip it"]},{"q":"What happens after 3 missed reservations in one day?","a":["Nothing","You lose a bike","You can't reserve again until tomorrow","You're removed from Juicers"]},{"q":"You reserved a bike and it's locked inside a building. What do you do?","a":["Nothing — let the reservation expire","Report Missing","Report a vehicle issue","Mark it for retrieval"]},{"q":"The dropspot is already at its limit. What do you do?","a":["Squeeze one more in","Lay the bike down beside it","Go to the next dropspot","Take it back to the warehouse"]},{"q":"You go to service a bike and the brake part is snapped. What do you choose?","a":["Submit service report","No service needed","Mark for retrieval","Leave it without choosing"]},{"q":"You finished the task but took no photo. What happens?","a":["Nothing","The task isn't paid","You get a warning","The next rider photographs it"]}]}}</script>
+<script>
+(function () {
+  var C = JSON.parse(document.getElementById("course-data").textContent);
+  var IMG = "img/";
+  var ICON = {
+    swap: '<rect x="7" y="5" width="10" height="16" rx="2"/><path d="M10 3h4"/><path d="M12.6 9.6 10.6 13h2.8l-2 3.4"/>',
+    retrieve: '<path d="M4 11 12 4l8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M16.5 15h-6"/><path d="m12.5 12.5-2.5 2.5 2.5 2.5"/>',
+    deploy: '<path d="M4 11 12 4l8 7"/><path d="M6 9.5V20h8"/><path d="M18 9.5V12"/><path d="M11 16h9"/><path d="m17.5 13.5 2.5 2.5-2.5 2.5"/>',
+    move: '<path d="M3 7h4l9 10h5"/><path d="M3 17h4l2.6-2.9"/><path d="M13.4 9.9 16 7h5"/><path d="m18.5 4.5 2.5 2.5-2.5 2.5"/><path d="m18.5 14.5 2.5 2.5-2.5 2.5"/>',
+    tidy: '<path d="M20 4 12 12"/><path d="m9.5 10.5 4 4-3.5 5L4.5 14z"/><path d="m7 17-2 2"/>',
+    service: '<path d="M5 19 14 10"/><path d="M13.6 5.8a3.3 3.3 0 0 0 4.6 4.6l-2-.5-.6-1.5-1.5-.6z"/><path d="M19 19 10 10"/><path d="M7.5 5 5 7.5 3.5 6 6 3.5z"/>'
+  };
+  var BIKE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 9h6l3.5 7"/><path d="M9 9 12 16h3"/><path d="M14 6h2.5"/></svg>';
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function rich(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>"); }
+  function img(id, cls, alt) { return '<img src="' + IMG + id + '.webp" alt="' + esc(alt || "") + '"' + (cls ? ' class="' + cls + '"' : "") + ' decoding="async">'; }
+  function chip(key, extra) {
+    var t = C.tasks[key];
+    return '<span class="chip ' + (extra || "") + '" style="background:' + t.tint + ';color:' + t.color + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[key] + "</svg>" + t.label + "</span>";
+  }
+  function msFor(s) {
+    if (s.ms) { return s.ms; }
+    var n = (s.caption || "").replace(/\*\*/g, "").length;
+    return Math.max(3800, 1900 + n * 68);
+  }
+
+  var SPOTS = [[22, 30, 4, 1], [70, 24, 1, 0], [44, 44, 2, 1], [80, 52, 5, 0], [30, 62, 4, 1], [60, 72, 3, 1], [18, 84, 6, 0]];
+  var TASKPINS = [[28, 34, "move"], [66, 30, "swap"], [46, 52, "retrieve"], [76, 62, "tidy"], [24, 70, "deploy"], [58, 84, "service"]];
+
+  var screens = {
+    chips: function (s) {
+      var hl = s.hl;
+      return '<div class="appbar">Type</div><div class="pad"><div class="s-chips' + (hl ? " has-hl" : "") + '">' +
+        s.tasks.map(function (k) { return chip(k, k === hl ? "hl" : ""); }).join("") + "</div></div>";
+    },
+    scanner: function () {
+      return '<div class="scan"><div class="box"><i></i><i></i><i></i><i></i></div><div class="line"></div><div class="hint">Point at the bike’s QR</div></div>' +
+        '<div class="navbar"><i></i><i></i><b></b><i></i><i></i></div>';
+    },
+    code: function (s) {
+      return '<div class="appbar">Enter bike code</div><div class="pad">' +
+        '<div class="field hl"><label>Code under the QR</label><div class="in">' + esc(s.code) + "</div></div>" +
+        '<div class="btn">Unlock</div><p style="margin:0;color:#5b6472;font-size:2.8cqw">Use it when the QR is scratched or won’t read.</p></div>';
+    },
+    whatsapp: function (s) {
+      return '<div class="appbar wa-bar">JuicersLogistics<small>online</small></div><div class="wa">' +
+        s.msgs.map(function (m, i) { return '<div class="bubble pop d' + (i + 1) + '">' + esc(m[0]) + "<time>" + esc(m[1]) + "</time></div>"; }).join("") + "</div>";
+    },
+    photo: function (s) {
+      return '<div class="appbar">Log run<small>' + esc(s.label) + " photo</small></div>" +
+        '<div class="shot">' + img(s.img, "", "Warehouse") + '<span class="stamp' + (s.hl ? " hl" : "") + '">' + esc(s.label) + " · " + esc(s.time) + "</span>" +
+        (s.send ? '<div class="btn pop d2">Send log</div>' : "") + "</div>";
+    },
+    call: function () {
+      return '<div class="call"><div class="x">☎</div><div class="who">JuicersLogistics</div><div>Reminder call</div>' +
+        '<div class="ok pop d2">Cancelled — arrival photo received</div></div>';
+    },
+    form: function (s) {
+      var v = s.values || [], hl = s.hl || [];
+      return '<div class="appbar">Log run<small>Step 2 of 3</small></div><div class="pad">' +
+        C.form_fields.map(function (f, i) {
+          return '<div class="field' + (hl.indexOf(i) > -1 ? " hl" : "") + '"><label>' + esc(f) + '</label><div class="in">' + (v[i] == null ? "" : v[i]) + "</div></div>";
+        }).join("") + '<div class="btn ghost">Next</div></div>';
+    },
+    map: function (s) {
+      var pins;
+      if (s.pins === "tasks") {
+        pins = TASKPINS.map(function (p) {
+          var t = C.tasks[p[2]];
+          return '<span class="pin task" style="left:' + p[0] + "%;top:" + p[1] + '%"><svg viewBox="0 0 24 24" fill="none" stroke="' + t.color + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + ICON[p[2]] + "</svg></span>";
+        }).join("");
+      } else {
+        pins = SPOTS.map(function (p, i) {
+          return '<span class="pin' + (s.hl === p[2] && i === SPOTS.findIndex(function (q) { return q[2] === s.hl; }) ? " hl" : "") + '" style="left:' + p[0] + "%;top:" + p[1] + '%">' + BIKE + p[2] + (p[3] ? '<span class="star">★</span>' : "") + "</span>";
+        }).join("");
+      }
+      return '<div class="map"><div class="tabs"><span' + (s.tab === "Tasks" ? ' class="on"' : "") + '>Tasks</span><span' + (s.tab === "Dropspots" ? ' class="on"' : "") + ">Dropspots</span></div>" + pins + "</div>" +
+        '<div class="navbar"><i></i><i></i><b></b><i></i><i></i></div>';
+    },
+    reserve: function (s) {
+      var body;
+      if (s.what === "Dropspot") {
+        body = '<div class="kv"><span>Free spaces</span><b>' + s.free + '</b></div><div class="kv"><span>Bikes with you</span><b>' + s.bikes + "</b></div>" +
+          '<div class="kv hl pop d1"><span>You can reserve</span><b>' + Math.min(s.free, s.bikes) + "</b></div>";
+      } else {
+        body = '<div style="display:flex">' + chip(s.task) + '</div><div class="kv"><span>Status</span><b>Available</b></div>';
+      }
+      return '<div class="appbar">' + esc(s.what) + "</div><div class=\"pad res\">" + body +
+        '<div class="btn pop d2">Reserve</div><div class="pop d3"><div class="timer">' + esc(s.timer) + '</div><div class="timer-l">reserved for you</div></div></div>';
+    },
+    strikes: function (s) {
+      var dots = "";
+      for (var i = 0; i < 3; i++) { dots += '<i class="' + (i < s.n ? "on pop d" + (i + 1) : "") + '">' + (i < s.n ? "✕" : "") + "</i>"; }
+      return '<div class="appbar">Missed reservations<small>today</small></div><div class="pad"><div class="strikes">' + dots + "</div>" +
+        (s.n >= 3 ? '<div class="lock pop d3">Reservations locked until tomorrow</div>' : '<p style="margin:0;text-align:center;color:#5b6472">' + s.n + " of 3</p>") + "</div>";
+    },
+    service: function (s) {
+      return '<div class="appbar">What do you want to do?</div><div class="pad">' +
+        C.service_options.map(function (o, i) { return '<div class="opt' + (i === s.pick ? " on" : "") + '"><span class="n">' + (i + 1) + "</span>" + esc(o) + "</div>"; }).join("") +
+        '<div class="btn ghost">Next</div></div>';
+    },
+    task: function () {
+      var t = C.tasks.swap;
+      return '<div class="appbar">Task</div><div class="pad">' +
+        '<div class="tcard"><span class="sq" style="background:' + t.color + '"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICON.swap + '</svg></span>' +
+        "<div><h4>Swap battery XXX‑PBM</h4><p>v6.0 ebike · Battery: 11%</p></div></div>" +
+        '<div class="kv"><span>Last GPS update</span><b>18 min ago</b></div>' +
+        '<div class="kv"><span>Last ride</span><b>8 days ago</b></div>' +
+        '<div class="pills"><span>Ring</span><span>Navigate</span><span>Vehicle actions</span></div>' +
+        '<div class="detbox"><b>Low battery</b><span>Bring a charged battery and swap it out</span></div>' +
+        '<div class="go">Scan to collect</div></div>';
+    },
+    ring: function () {
+      return '<div class="appbar">Ring</div><div class="ringbox"><div class="wave"><b>♪</b></div>' +
+        "<p>The lights flash and the bike beeps.</p>" +
+        '<div class="quiet pop d2">Quiet hours: some bikes stay silent</div></div>';
+    },
+    match: function () {
+      return '<div class="appbar">Is this the right bike?</div><div class="pad match">' +
+        '<div class="lab">In Supply</div><div class="code"><em>XXX‑</em><u>TLQ</u></div>' +
+        '<div class="eq pop d1">=</div>' +
+        '<div class="lab">On the plate under the QR</div><div class="code"><em>UUB‑</em><u>TLQ</u></div></div>';
+    },
+    actions: function (s) {
+      return '<div class="appbar">Vehicle actions</div><div class="pad">' +
+        C.vehicle_actions.map(function (a, i) {
+          return '<div class="act' + (i === 3 ? " red" : "") + (s.hl === i ? " on" : "") + '"><i></i><div>' + esc(a[0]) +
+            (a[1] ? "<span>" + esc(a[1]) + "</span>" : "") + "</div></div>";
+        }).join("") + "</div>";
+    },
+    times: function (s) {
+      return '<div class="appbar">Book a battery run</div><div class="pad">' +
+        C.slots.map(function (t, i) {
+          var full = (s.full || []).indexOf(i) > -1;
+          return '<div class="slot' + (i === s.pick ? " on" : full ? " full" : "") + '">' + esc(t) +
+            "<small>" + (full ? "full" : i === s.pick ? "booked" : "available") + "</small></div>";
+        }).join("") + "</div>";
+    },
+    stock: function (s) {
+      return '<div class="map"><div class="tabs"><span>Tasks</span><span class="on">Dropspots</span></div>' +
+        '<span class="stockpin pop d1">' +
+        '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18 12 5h3"/><path d="M12 18h4"/></svg> ' + s.scooters + "</span>" +
+        "<span>" + BIKE + " " + s.bikes + "</span></span></div>" +
+        '<div class="navbar"><i></i><i></i><b></b><i></i><i></i></div>';
+    }
+  };
+
+  var kinds = {
+    title: function (s, mod) {
+      return '<div class="k-title up">' + img(s.char, "", mod.host) + (mod.task ? chip(mod.task) : "") + "<h2>" + esc(s.title) + "</h2><p>" + esc(s.sub) + "</p></div>";
+    },
+    hero: function (s, mod) { return '<div class="hero up">' + img(s.img, "", mod.host) + "</div>"; },
+    object: function (s) {
+      var h = '<span class="art up">' + img(s.img, "", s.img.replace(/-/g, " "));
+      if (s.readouts) {
+        h += s.readouts.map(function (n, i) { return '<span class="readout r' + i + '" data-to="' + n + '">' + (s.count ? 0 : n) + "</span>"; }).join("");
+      }
+      if (s.verdicts) { h += '<span class="verdict v0 pop d2">Take it</span><span class="verdict v1 pop d3">Leave it</span>'; }
+      return h + "</span>";
+    },
+    pair: function (s) {
+      return '<div class="k-pair up">' + s.items.map(function (it) { return "<figure>" + img(it[0], "", it[1]) + "<figcaption>" + esc(it[1]) + "</figcaption></figure>"; }).join("") + "</div>";
+    },
+    stat: function (s, mod) {
+      var long = String(s.big).length > 4;
+      return '<div class="k-stat up"><div class="big' + (long ? " long" : "") + (s.strike ? " strike" : "") + '">' + esc(s.big) + '</div><div class="small">' + esc(s.small) + "</div>" +
+        (s.char ? img(s.char, "", mod.host) : "") + "</div>";
+    },
+    list: function (s, mod) {
+      return '<div class="k-list up">' + img(s.char, "", mod.host) + "<ul>" +
+        s.items.map(function (it, i) { return '<li class="pop d' + (i + 1) + '"><b>' + esc(it[0]) + "</b><span>" + esc(it[1]) + "</span></li>"; }).join("") + "</ul></div>";
+    },
+    phone: function (s) { return '<div class="phone up"><div class="screen">' + screens[s.screen.type](s.screen) + "</div></div>"; },
+    row: function (s) {
+      return '<figure class="k-row up">' + bay(s.img, s.n || 3) + (s.label ? "<figcaption>" + esc(s.label) + "</figcaption>" : "") + "</figure>";
+    },
+    versus: function (s) {
+      return '<div class="k-versus up"><figure>' + img(s.bad, "", "badly parked") +
+        '<figcaption class="no">✕ ' + esc(s.labels[0]) + "</figcaption></figure>" +
+        "<figure>" + bay(s.img, s.n || 2) + '<figcaption class="yes">✓ ' + esc(s.labels[1]) + "</figcaption></figure></div>";
+    }
+  };
+
+  /* Dibuja los arcos del aparcabicis y coloca N bicis identicas, separadas por igual
+     y mirando todas al mismo lado. */
+  function bay(id, n) {
+    var hoops = "", step = 100 / n, w = Math.min(14, step * 0.5);
+    for (var i = 0; i <= n; i++) {
+      var x = Math.max(1, Math.min(99 - w, i * step + (step - w) / 2));
+      hoops += '<path d="M' + x + ' 100 V28 a' + (w / 2) + ' 26 0 0 1 ' + w + ' 0 V100"/>';
+    }
+    var bikes = "";
+    for (var j = 0; j < n; j++) { bikes += img(id, "", "bike parked"); }
+    return '<div class="bay"><svg class="hoops" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+      '<g fill="none" stroke="#9aa3ad" stroke-width="2.2" vector-effect="non-scaling-stroke">' + hoops + "</g></svg>" +
+      '<div class="bikes">' + bikes + '</div></div><div class="floor"></div>';
+  }
+
+  /* ---------- estado ---------- */
+  /* Empotrado dentro de la app de Juicers: el marco, el examen y el certificado los pone React,
+     aqui solo se reproducen los modulos y se avisa de cual se termino. */
+  var EMBED = /[?&]embed=1/.test(window.location.search);
+  var post = function (msg) {
+    if (EMBED && window.parent !== window) { window.parent.postMessage(Object.assign({ from: "course" }, msg), "*"); }
+  };
+
+  var app = document.getElementById("app");
+  if (EMBED) {
+    document.querySelector("header").hidden = true;
+    var notes = document.querySelector(".notes");
+    if (notes) { notes.hidden = true; }
+    document.body.style.background = "transparent";
+  }
+  var stage = document.getElementById("stage");
+  var rail = document.getElementById("rail");
+  var toggle = document.getElementById("toggle");
+  var advance = document.getElementById("advance");
+  var modNav = document.getElementById("modules");
+  var mi = 0, si = 0, timer = null, playing = true, raf = [], sceneEls = [], dots = [], bar;
+  var done = {};
+
+  C.modules.forEach(function (m, k) {
+    var b = document.createElement("button");
+    b.type = "button";
+    var col = m.task ? C.tasks[m.task].color : m.color;
+    b.innerHTML = '<span class="dot" style="background:' + col + '"></span>' + esc(m.name);
+    b.addEventListener("click", function () { openModule(k, true); });
+    modNav.appendChild(b);
+  });
+
+  function setColors(m) {
+    var t = m.task ? C.tasks[m.task] : null;
+    app.style.setProperty("--mod", t ? t.color : "#14181f");
+    app.style.setProperty("--mod-tint", t ? t.tint : "#e9ecf2");
+  }
+
+  function openModule(k, autoplay) {
+    mi = k; si = 0;
+    var m = C.modules[k];
+    document.getElementById("exam").hidden = true;
+    document.getElementById("player").hidden = false;
+    document.getElementById("controls").hidden = false;
+    document.querySelector(".after").hidden = false;
+    setColors(m);
+    document.getElementById("modTitle").textContent = (k === 0 ? "" : "Module " + k + " — ") + m.name;
+    document.getElementById("modSub").textContent = "Your guide: " + m.host + " · " + m.scenes.length + " scenes";
+    Array.prototype.forEach.call(modNav.children, function (b, j) {
+      b.setAttribute("aria-current", j === k ? "true" : "false");
+      b.classList.toggle("done", !!done[j]);
+    });
+    stage.innerHTML = m.scenes.map(function (s) {
+      return '<section class="scene">' + kinds[s.kind](s, m) + '<p class="caption">' + rich(s.caption) + "</p></section>";
+    }).join("") + '<span class="bar" id="bar"></span>';
+    sceneEls = Array.prototype.slice.call(stage.querySelectorAll(".scene"));
+    bar = document.getElementById("bar");
+    rail.innerHTML = "";
+    dots = m.scenes.map(function (_, j) {
+      var d = document.createElement("button");
+      d.type = "button";
+      d.setAttribute("aria-label", "Scene " + (j + 1));
+      d.addEventListener("click", function () { show(j, true); });
+      rail.appendChild(d);
+      return d;
+    });
+    advance.textContent = k < C.modules.length - 1 ? "Next module ›"
+      : EMBED ? "Finish ›" : "Take the final test ›";
+    playing = autoplay !== false;
+    toggle.textContent = playing ? "Pause" : "Play";
+    show(0, !playing);
+  }
+
+  function countUp(el, to) {
+    var t0 = null, id;
+    function step(t) {
+      if (t0 === null) { t0 = t; }
+      var p = Math.min(1, (t - t0) / 1400);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) { id = requestAnimationFrame(step); raf.push(id); }
+    }
+    raf.push(requestAnimationFrame(step));
+  }
+
+  function show(j, hold) {
+    clearTimeout(timer);
+    raf.forEach(cancelAnimationFrame); raf = [];
+    var m = C.modules[mi];
+    si = Math.max(0, Math.min(j, sceneEls.length - 1));
+    sceneEls.forEach(function (el, k) { el.classList.toggle("is-on", k === si); });
+    dots.forEach(function (d, k) { d.setAttribute("aria-current", k === si ? "true" : "false"); d.classList.toggle("seen", k < si); });
+    var s = m.scenes[si];
+    if (s.count) {
+      Array.prototype.forEach.call(sceneEls[si].querySelectorAll(".readout"), function (r) { countUp(r, +r.dataset.to); });
+    }
+    if (si === sceneEls.length - 1 && !done[mi]) {
+      done[mi] = true;
+      modNav.children[mi].classList.add("done");
+      post({ type: "module", id: m.id, seen: Object.keys(done).length, total: C.modules.length });
+    }
+    var ms = msFor(s);
+    bar.classList.remove("run");
+    bar.style.width = "0%";
+    void bar.offsetWidth;
+    if (hold || !playing) { if (hold) { pause(); } return; }
+    bar.classList.add("run");
+    bar.style.transitionDuration = ms + "ms";
+    bar.style.width = "100%";
+    timer = setTimeout(function () {
+      if (si < sceneEls.length - 1) { show(si + 1); } else { pause(); }
+    }, ms);
+  }
+
+  function pause() {
+    playing = false;
+    toggle.textContent = "Play";
+    clearTimeout(timer);
+    var w = bar.getBoundingClientRect().width;
+    bar.classList.remove("run");
+    bar.style.width = w + "px";
+  }
+
+  toggle.addEventListener("click", function () {
+    if (playing) { pause(); return; }
+    playing = true; toggle.textContent = "Pause";
+    show(si === sceneEls.length - 1 ? 0 : si);
+  });
+  document.getElementById("prev").addEventListener("click", function () { show(si - 1, true); });
+  document.getElementById("next").addEventListener("click", function () { show(si + 1, true); });
+  advance.addEventListener("click", function () {
+    if (mi < C.modules.length - 1) {
+      openModule(mi + 1, true);
+      if (EMBED) { post({ type: "scroll" }); } else { window.scrollTo({ top: 0, behavior: "smooth" }); }
+    } else if (EMBED) { post({ type: "finished" }); }
+    else { openExam(); }
+  });
+
+  /* ---------- examen ---------- */
+  var attemptsLeft = C.exam.attempts;
+  var form = document.getElementById("examForm");
+  var result = document.getElementById("examResult");
+  var submit = document.getElementById("examSubmit");
+
+  function examMeta() {
+    document.getElementById("examMeta").textContent = C.exam.questions.length + " questions · you need " + C.exam.pass + " of " + C.exam.questions.length + " · attempts left: " + attemptsLeft;
+  }
+  function buildExam() {
+    form.innerHTML = C.exam.questions.map(function (q, i) {
+      return '<fieldset id="q' + i + '"><legend><span>' + (i + 1) + ".</span>" + esc(q.q) + "</legend>" +
+        q.a.map(function (a, j) {
+          var id = "q" + i + "a" + j;
+          return '<label for="' + id + '"><input type="radio" name="q' + i + '" id="' + id + '" value="' + j + '">' + esc(a) + "</label>";
+        }).join("") + "</fieldset>";
+    }).join("");
+  }
+  function openExam() {
+    clearTimeout(timer);
+    document.getElementById("player").hidden = true;
+    document.getElementById("controls").hidden = true;
+    document.querySelector(".after").hidden = true;
+    document.getElementById("exam").hidden = false;
+    document.getElementById("modTitle").textContent = "Final test";
+    document.getElementById("modSub").textContent = "Everything here was said on screen during the course.";
+    Array.prototype.forEach.call(modNav.children, function (b) { b.setAttribute("aria-current", "false"); });
+    app.style.setProperty("--mod", "#14181f");
+    examMeta();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  submit.addEventListener("click", function () {
+    if (attemptsLeft <= 0) { return; }
+    var score = 0, missing = 0;
+    C.exam.questions.forEach(function (q, i) {
+      var sel = form.querySelector('input[name="q' + i + '"]:checked');
+      var fs = document.getElementById("q" + i);
+      fs.classList.remove("wrong");
+      if (!sel) { missing++; return; }
+      if (+sel.value === q.ok) { score++; } else { fs.classList.add("wrong"); }
+    });
+    if (missing) { result.innerHTML = '<div class="result fail">Answer all ' + C.exam.questions.length + " questions first — " + missing + " left.</div>"; return; }
+    attemptsLeft--;
+    if (score >= C.exam.pass) {
+      result.innerHTML = '<div class="result pass">' + score + " / " + C.exam.questions.length + " — passed. In the app, this issues your Juicers certificate.</div>";
+      submit.disabled = true;
+    } else if (attemptsLeft > 0) {
+      result.innerHTML = '<div class="result fail">' + score + " / " + C.exam.questions.length + ". You need all " + C.exam.pass + ". The ones in red are wrong — one attempt left.</div>";
+    } else {
+      result.innerHTML = '<div class="result fail">' + score + " / " + C.exam.questions.length + ". No attempts left — in the app the course locks until an admin unlocks it.</div>";
+      submit.disabled = true;
+    }
+    examMeta();
+  });
+  document.getElementById("examBack").addEventListener("click", function () { openModule(mi, false); });
+
+  buildExam();
+  openModule(0, true);
+})();
+</script>
