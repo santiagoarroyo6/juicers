@@ -301,6 +301,12 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 form .btn{justify-self:start}
 .done{grid-column:1/-1;background:var(--chip-move-bg);border:1px solid var(--line);border-radius:12px;padding:18px;font-size:15.5px}
 .done b{display:block;font-family:var(--display);font-size:18px;margin-bottom:4px}
+.done span{display:block}
+.fail{grid-column:1/-1;background:var(--chip-retrieve-bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:15px;font-weight:500}
+.done-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.btn-line{background:transparent;border-color:var(--line);color:var(--fg)}
+.done .link{display:block;margin-top:12px;font-size:12.5px;word-break:break-all;color:var(--fg-2);user-select:all}
+form input:disabled,form select:disabled{opacity:.6}
 @media (max-width:860px){.apply{grid-template-columns:1fr}}
 @media (max-width:560px){form{grid-template-columns:1fr;padding:24px 20px}.apply-side{padding:28px 20px}}
 
@@ -573,24 +579,25 @@ footer{background:var(--navy);color:var(--on-navy-2);font-size:14.5px}
           <p class="next">After the course you upload your documents and book a session at Lucky Bikes, Ultimo.</p>
         </div>
         <form id="apply-form" novalidate>
+          <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label for="f-website">Website</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
           <div class="field"><label for="f-name">Full name</label><input id="f-name" name="name" autocomplete="name" required placeholder="Alex Rivera"></div>
           <div class="field"><label for="f-phone">Mobile (WhatsApp)</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" required placeholder="04xx xxx xxx"></div>
           <div class="field"><label for="f-visa">Work rights</label>
             <select id="f-visa" name="visa" required>
               <option value="">Choose one</option>
-              <option>Citizen or permanent resident</option>
-              <option>Working holiday visa</option>
+              <option value="citizen">Citizen or permanent resident</option>
+              <option value="working_holiday">Working holiday visa</option>
               <option value="student">Student visa</option>
-              <option>Other visa with work rights</option>
+              <option value="other">Other visa with work rights</option>
               <option value="none">No work rights yet</option>
             </select>
           </div>
           <div class="field"><label for="f-abn">Do you have an ABN?</label>
             <select id="f-abn" name="abn" required>
               <option value="">Choose one</option>
-              <option>Yes</option>
-              <option>I'm applying</option>
-              <option>Not yet</option>
+              <option value="yes">Yes</option>
+              <option value="applying">I'm applying</option>
+              <option value="no">Not yet</option>
             </select>
           </div>
           <p class="student-note field full" id="student-note" hidden>Students work with us at least 20 hours a week.</p>
@@ -606,9 +613,9 @@ footer{background:var(--navy);color:var(--on-navy-2);font-size:14.5px}
           <div class="field"><label for="f-hours">Hours per week</label>
             <select id="f-hours" name="hours">
               <option value="">Choose one</option>
-              <option>20–29</option>
-              <option>30–39</option>
-              <option>40+</option>
+              <option value="20-29">20–29</option>
+              <option value="30-39">30–39</option>
+              <option value="40+">40+</option>
             </select>
           </div>
           <label class="consent field full"><input type="checkbox" id="f-consent" required> I'm 18 or older and agree that Juicers Logistics can contact me on WhatsApp about this application.</label>
@@ -645,31 +652,65 @@ footer{background:var(--navy);color:var(--on-navy-2);font-size:14.5px}
 
 <script>
 (function(){
+  var API='https://vcrrqbnugnlbppeygmhm.supabase.co/functions/v1/course';
+  var APP='https://santiagoarroyo6.github.io/juicers/app/#/course?t=';
   var form=document.getElementById('apply-form');
   var visa=document.getElementById('f-visa');
   var note=document.getElementById('student-note');
   var msg=document.getElementById('form-msg');
+  var btn=form.querySelector('button[type="submit"]');
+  var src='web';
+  try{ var q=new URLSearchParams(location.search).get('src'); if(q && /^[a-z0-9][a-z0-9_-]{0,39}$/i.test(q)) src=q.toLowerCase(); }catch(e){}
   visa.addEventListener('change',function(){ note.hidden = visa.value!=='student'; });
+  function show(kind,title,text){
+    msg.innerHTML='';
+    var d=document.createElement('div');
+    d.className=kind==='error'?'fail':'done';
+    if(title){ var b=document.createElement('b'); b.textContent=title; d.appendChild(b); }
+    if(text){ var t=document.createElement('span'); t.textContent=text; d.appendChild(t); }
+    msg.appendChild(d); return d;
+  }
   form.addEventListener('submit',function(e){
     e.preventDefault();
+    if(btn.disabled) return;
     var missing=[];
     if(!document.getElementById('f-name').value.trim()) missing.push('your name');
     if(!document.getElementById('f-phone').value.trim()) missing.push('your mobile');
     if(!visa.value) missing.push('your work rights');
     if(!document.getElementById('f-abn').value) missing.push('your ABN status');
-    if(!form.querySelector('input[name="vehicle"]:checked')) missing.push('a vehicle');
+    var vehicles=[].map.call(form.querySelectorAll('input[name="vehicle"]:checked'),function(i){return i.value;});
+    if(!vehicles.length) missing.push('a vehicle');
     if(!document.getElementById('f-consent').checked) missing.push('the consent box');
-    if(missing.length){
-      msg.innerHTML='';
-      var p=document.createElement('p'); p.style.color='var(--chip-retrieve)'; p.style.fontWeight='600';
-      p.textContent='Please add '+missing.join(', ')+'.';
-      msg.appendChild(p); return;
-    }
-    if(visa.value==='none'){
-      msg.innerHTML='<div class="done"><b>You need work rights first</b>To work with us you need the right to work in Australia. Come back once you have it and we’ll be glad to hear from you.</div>';
-      return;
-    }
-    msg.innerHTML='<div class="done"><b>Thanks, application received</b>Preview only: on the live site this step opens your online course straight away.</div>';
+    if(missing.length){ show('error','','Please add '+missing.join(', ')+'.'); return; }
+    if(visa.value==='none'){ show('done','You need work rights first','To work with us you need the right to work in Australia. Come back once you have it and we’ll be glad to hear from you.'); return; }
+    btn.disabled=true; btn.textContent='Sending…';
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      action:'apply', source:src,
+      name:document.getElementById('f-name').value, phone:document.getElementById('f-phone').value,
+      visa:visa.value, abn:document.getElementById('f-abn').value, vehicles:vehicles,
+      suburb:document.getElementById('f-suburb').value, hours:document.getElementById('f-hours').value,
+      consent:document.getElementById('f-consent').checked, website:document.getElementById('f-website').value
+    })}).then(function(r){ return r.json().then(function(d){ return {ok:r.ok,d:d}; }); })
+    .then(function(res){
+      if(!res.ok){ show('error','',res.d.error||'Something went wrong. Please try again.'); return; }
+      if(!res.d.token){ show('done','Thanks, application received','We’ll be in touch on WhatsApp.'); return; }
+      var link=APP+res.d.token;
+      form.querySelectorAll('input,select').forEach(function(el){ el.disabled=true; });
+      btn.hidden=true;
+      var box=show('done','You’re in! Your course is ready','This is your personal link. Save it: you’ll use it again to upload your documents after the course.');
+      var row=document.createElement('div'); row.className='done-actions';
+      var go=document.createElement('a'); go.className='btn btn-primary'; go.href=link; go.textContent='Start the course';
+      var cp=document.createElement('button'); cp.type='button'; cp.className='btn btn-line'; cp.textContent='Copy my link';
+      cp.addEventListener('click',function(){
+        var done=function(){ cp.textContent='Copied'; };
+        var pick=function(){ var r=document.createRange(); r.selectNodeContents(code); var s=getSelection(); s.removeAllRanges(); s.addRange(r); cp.textContent='Selected, copy it'; };
+        if(navigator.clipboard){ navigator.clipboard.writeText(link).then(done,pick); } else { pick(); }
+      });
+      var code=document.createElement('code'); code.className='link'; code.textContent=link;
+      row.appendChild(go); row.appendChild(cp); box.appendChild(row); box.appendChild(code);
+    })
+    .catch(function(){ show('error','','We couldn’t send your application. Check your connection and try again.'); })
+    .then(function(){ if(!btn.hidden){ btn.disabled=false; btn.textContent='Send application'; } });
   });
 })();
 </script>
